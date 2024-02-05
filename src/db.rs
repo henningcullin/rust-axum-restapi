@@ -1,6 +1,7 @@
-use std::fs;
-use std::env;
-use std::path::Path;
+use std::{
+    env, fs, io::Write, path::Path
+};
+
 use axum::http::StatusCode;
 
 use serde_derive::{Deserialize, Serialize};
@@ -33,6 +34,36 @@ pub struct UpdateCar {
     model: Option<String>,
     year: Option<u16>,
     color: Option<String>
+}
+
+fn get_path() -> Result<std::path::PathBuf, String> {
+    let user_profile = match env::var("USERPROFILE") {
+        Ok(val) => val,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    Ok(Path::new(&user_profile).join("Documents").join("cars.json"))
+}
+
+pub fn init() -> Result<(), String> {
+
+    let file_path = get_path()?;
+
+    match file_path.exists() {
+        true => return Ok(()),
+        false => {
+            match fs::File::create(file_path) {
+                Ok(mut file) => {
+                    match file.write_all("[]".as_bytes()) {
+                        Ok(_) => return Ok(()),
+                        Err(err) => return Err(err.to_string())
+                    }
+                }
+                Err(err) => return Err(err.to_string())
+            }
+        }
+    };
+    
 }
 
 fn read_file() -> Result<String, StatusCode> {

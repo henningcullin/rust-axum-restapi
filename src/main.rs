@@ -13,6 +13,11 @@ use axum::{ // Framework
 #[tokio::main]
 async fn main() {
 
+    match db::init() {
+        Ok(_) => println!("Created JSON database file"),
+        Err(msg) => println!("A new JSON File was not created \n Reason: {}", msg)
+    };
+
     let app = Router::new()
         .route("/car", get(cars::details))
         .route("/cars", get(cars::index))
